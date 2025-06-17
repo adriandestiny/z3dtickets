@@ -4,28 +4,30 @@ const config = require('../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('setup-reaction-roles')
-    .setDescription('Post a reaction role message and record its ID')
+    .setName('setup-reaction-panel')
+    .setDescription('Post a reaction role panel message with all mapped roles and explanations')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
     const rr = config.reactionRoles;
     if (!rr || !rr.emojiRoleMap || Object.keys(rr.emojiRoleMap).length === 0) {
-      return interaction.reply({ content: 'Reaction role configuration is missing.', ephemeral: true });
+      return interaction.reply({ content: 'Reaction role configuration is missing. Please run the setup flow first.', ephemeral: true });
     }
-    // Prompt for which reactions to add and what they are for
-    await interaction.reply({ content: 'React to this message with the emojis you want to use for roles. Only your reactions will be added. After reacting, type `done` and specify what each emoji is for (e.g., Support, Events, Updates, etc).', fetchReply: true });
-    const message = await interaction.fetchReply();
-    // Wait for user reactions
-    const filter = (reaction, user) => user.id === interaction.user.id && rr.emojiRoleMap[reaction.emoji.name];
-    const collected = await message.awaitReactions({ filter, time: 60000 });
-    // Only add reactions set by the user
+    // Build explanation message
+    let description = 'React to this message to get the corresponding role.\n\n';
     for (const [emoji, roleId] of Object.entries(rr.emojiRoleMap)) {
-      if (collected.has(emoji)) {
-        try {
-          await message.react(emoji);
-        } catch (e) {
-          console.error(`Failed to react with ${emoji}`, e);
-        }
+      const label = rr.emojiLabels && rr.emojiLabels[emoji] ? rr.emojiLabels[emoji] : '';
+      description += `${emoji} <@&${roleId}> — ${label}\n`;
+    }
+    const message = await interaction.reply({
+      content: description,
+      fetchReply: true
+    });
+    // React with each mapped emoji
+    for (const emoji of Object.keys(rr.emojiRoleMap)) {
+      try {
+        await message.react(emoji);
+      } catch (e) {
+        console.error(`Failed to react with ${emoji}`, e);
       }
     }
     config.reactionRoles.messageId = message.id;
