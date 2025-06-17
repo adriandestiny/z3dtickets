@@ -1,1 +1,1 @@
-web: concurrently "node index.js" "node admin.js"
+web: node index.js
