@@ -4,9 +4,6 @@
   "reactionRoles": {
     "messageId": "",
     "messageContent": "React to assign yourself a role:",
-    "emojiRoleMap": {
-      "\uD83D\uDD25": "ROLE_ID_FIRE",
-      "\u2744\uFE0F": "ROLE_ID_ICE"
-    }
+    "emojiRoleMap": {}
   }
 }
