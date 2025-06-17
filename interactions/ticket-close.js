@@ -8,7 +8,7 @@ module.exports = {
       const channel = interaction.channel;
       const user = interaction.user;
       // Confirm close (ephemeral)
-      await interaction.reply({ content: 'Are you sure you want to close this ticket? Click again to confirm.', ephemeral: true });
+      await interaction.reply({ content: 'Are you sure you want to close this ticket? Click again to confirm.', flags: 64 });
       // Wait for confirmation (simulate with a second click for simplicity)
       let confirmed = false;
       const filter = i => i.user.id === user.id && i.customId === 'close_ticket';
