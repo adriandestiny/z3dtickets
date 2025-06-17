@@ -31,7 +31,7 @@ plans.
 
 - Install packages using `npm install`
 
-- Set the `DISCORD_TOKEN` environment variable 
+- Set the `DISCORD_TOKEN` and `CLIENT_ID` environment variables 
 
 - Start both the bot and admin interface using `npm start`. You'll be
   prompted for the token if the environment variable is unset.
