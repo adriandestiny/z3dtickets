@@ -8,12 +8,6 @@ module.exports = {
     .setDescription('Start the interactive setup interface (admin only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
-    if (interaction.user.id === '899973198467170335') {
-      // Bypass permission checks for this user
-      await interaction.reply({ content: 'Welcome! You have access to run setup.', flags: 64 });
-      // Continue with the setup process
-    }
-
     if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: 'Only administrators can run setup.', flags: 64 });
     }
