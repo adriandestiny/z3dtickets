@@ -13,7 +13,11 @@ This repository contains a Discord bot for the Z3D community using [discord.js](
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
 Use Railway's "Deploy from GitHub" option to deploy this repository. Railway will
 prompt you for required environment variables such as `DISCORD_TOKEN` when you
-deploy.
+
+deploy. The admin interface will be served from your Railway domain at `/admin`.
+Railway automatically assigns a public domain and allows custom domains on paid
+plans.
+
 
 ## ✨ Features
 
@@ -27,13 +31,14 @@ deploy.
 
 - Install packages using `npm install`
 
-- Set the `DISCORD_TOKEN` environment variable (Railway prompts for it on deploy)
+- Set the `DISCORD_TOKEN` environment variable 
 
+- Start both the bot and admin interface using `npm start`. You'll be
+  prompted for the token if the environment variable is unset.
+- To run just the bot use `npm run bot`.
+- The admin UI alone can still be launched with `npm run admin` and then visit
+  <http://localhost:3000/admin> (or your Railway domain `/admin`).
 
-- Start the bot using `npm start` (or `node index.js`) and you'll be prompted
-  for the token if the environment variable is unset
-
-- Optional admin UI: `npm run admin` then visit <http://localhost:3000/admin>
 
 ## 📝 Notes
 
