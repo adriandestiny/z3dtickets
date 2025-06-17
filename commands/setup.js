@@ -8,8 +8,8 @@ module.exports = {
     .setDescription('Start the interactive setup interface (admin only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
-    if (interaction.user.id !== interaction.guild.ownerId) {
-      return interaction.reply({ content: 'Only the server owner can run setup.', ephemeral: true });
+    if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      return interaction.reply({ content: 'Only administrators can run setup.', flags: 64 });
     }
     // Create an interactive setup interface with buttons
     const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
