@@ -17,14 +17,21 @@ This repository contains a Discord bot for the Z3D community using [discord.js](
 - Ticket system with open/close buttons
 - Reaction role assignment
 - Node.js using discord.js
-- Web-based admin interface for configuration and debug
+
+- Web-based admin interface for reaction roles and debug
+=======
+
 
 ## 💁‍♀️ How to use
 
 - Install packages using `npm install`
+
+- Set the `DISCORD_TOKEN` environment variable (Railway prompts for it on deploy)
+
 - Start the bot using `node index.js`
 - Optional admin UI: `npm run admin` then visit <http://localhost:3000/admin>
 
 ## 📝 Notes
 
-This is a basic bot with the prefix `!`, more information can be founded at their [offical documentation](https://discordpy.readthedocs.io/en/stable/api.html).
+This is a basic bot that relies on slash commands. For more details on extending the bot see the [discord.js documentation](https://discord.js.org/#/docs/main/stable/general/welcome).
+The Discord token should be configured as an environment variable (e.g. when deploying on Railway) and cannot be edited through the admin UI.

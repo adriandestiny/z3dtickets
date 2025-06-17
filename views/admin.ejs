@@ -6,11 +6,6 @@
   </head>
   <body>
     <h1>Z3dTickets Admin Interface</h1>
-    <h2>Credentials</h2>
-    <form method="post" action="/admin/credentials">
-      <label>DISCORD_TOKEN <input type="text" name="DISCORD_TOKEN" value="<%= env.DISCORD_TOKEN || '' %>" /></label>
-      <button type="submit">Save</button>
-    </form>
 
     <h2>Reaction Roles</h2>
     <form method="post" action="/admin/reaction-roles">
