@@ -12,21 +12,24 @@ module.exports = {
         if (interaction.user.id !== interaction.guild.ownerId) {
           return interaction.reply({ content: 'Only the server owner can run this setup.', ephemeral: true });
         }
-        // Ask for support role
-        await interaction.reply({ content: 'Please mention the support role (e.g., @Support).', ephemeral: true });
-        const filter = m => m.author.id === interaction.user.id && m.mentions.roles.size > 0;
+        // Ask for support role (mention or ID)
+        await interaction.reply({ content: 'Please mention the support role (e.g., @Support) or provide the role ID (e.g., 123456789012345678).', ephemeral: true });
+        const filter = m => m.author.id === interaction.user.id && (m.mentions.roles.size > 0 || /^\d{17,19}$/.test(m.content.trim()));
         try {
           const collected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
-          const role = collected.first().mentions.roles.first();
-          if (!role) return interaction.channel.send('No role mentioned. Setup cancelled.');
-          config.supportRoleId = role.id;
-          // Ask for log channel
-          await interaction.channel.send('Please mention the log channel (e.g., #logs).');
-          const filter2 = m => m.author.id === interaction.user.id && m.mentions.channels.size > 0;
+          let roleId;
+          if (collected.first().mentions.roles.size > 0) {
+            roleId = collected.first().mentions.roles.first().id;
+          } else {
+            roleId = collected.first().content.trim();
+          }
+          config.supportRoleId = roleId;
+          // Ask for log channel ID
+          await interaction.channel.send('Please provide the log channel ID (e.g., 1375124421659857019).');
+          const filter2 = m => m.author.id === interaction.user.id && /^\d{17,19}$/.test(m.content.trim());
           const collected2 = await interaction.channel.awaitMessages({ filter: filter2, max: 1, time: 60000, errors: ['time'] });
-          const logChannel = collected2.first().mentions.channels.first();
-          if (!logChannel) return interaction.channel.send('No channel mentioned. Setup cancelled.');
-          config.logChannelId = logChannel.id;
+          const logChannelId = collected2.first().content.trim();
+          config.logChannelId = logChannelId;
           fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
           await interaction.channel.send('✅ Ticket support setup complete!');
         } catch (e) {
@@ -40,22 +43,20 @@ module.exports = {
         }
         config.reactionRoles = config.reactionRoles || { emojiRoleMap: {} };
         let adding = true;
-        await interaction.reply({ content: 'Send an emoji and mention a role to map (e.g., 🔥 @FireRole), or type `done` to finish.', ephemeral: true });
+        await interaction.reply({ content: 'Send an emoji and a role ID to map (e.g., 🔥 123456789012345678), or type `done` to finish.', ephemeral: true });
         while (adding) {
           const filter = m => m.author.id === interaction.user.id;
           try {
             const collected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
             const msg = collected.first();
             if (msg.content.toLowerCase() === 'done') break;
-            const emojiMatch = msg.content.match(/\p{Emoji}/u);
-            const emoji = emojiMatch ? emojiMatch[0] : msg.content.split(' ')[0];
-            const mapRole = msg.mentions.roles.first();
-            if (!emoji || !mapRole) {
-              await interaction.channel.send('Invalid format. Please send an emoji and mention a role.');
+            const [emoji, roleId] = msg.content.trim().split(/\s+/);
+            if (!emoji || !/^\d{17,19}$/.test(roleId)) {
+              await interaction.channel.send('Invalid format. Please send an emoji and a role ID (e.g., 🔥 123456789012345678).');
               continue;
             }
-            config.reactionRoles.emojiRoleMap[emoji] = mapRole.id;
-            await interaction.channel.send(`Mapped ${emoji} to <@&${mapRole.id}>.`);
+            config.reactionRoles.emojiRoleMap[emoji] = roleId;
+            await interaction.channel.send(`Mapped ${emoji} to role ID ${roleId}.`);
           } catch (e) {
             await interaction.channel.send('Setup timed out or failed. Please try again.');
             break;
