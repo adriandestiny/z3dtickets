@@ -66,27 +66,73 @@ client.on('ticketClosed', (data) => {
 client.on('messageReactionAdd', async (reaction, user) => {
   if (user.bot) return;
   const rr = config.reactionRoles;
-  if (!rr || reaction.message.id !== rr.messageId) return;
-  if (reaction.partial) {
-    try { await reaction.fetch(); } catch (e) { return; }
-  }
-  const roleId = rr.emojiRoleMap[reaction.emoji.name];
+  if (!rr || !rr.messageId || reaction.message.id !== rr.messageId) return;
+  const emoji = reaction.emoji.name;
+  const roleId = rr.emojiRoleMap && rr.emojiRoleMap[emoji];
   if (!roleId) return;
   const member = await reaction.message.guild.members.fetch(user.id);
-  if (member) member.roles.add(roleId).catch(console.error);
+  await member.roles.add(roleId);
+  // Log assignment
+  let logChannelId = config.logChannelId;
+  if (!logChannelId) {
+    // Prompt for log channel if not set
+    const channel = reaction.message.guild.channels.cache.find(c => c.type === ChannelType.GuildText && c.permissionsFor(reaction.message.guild.members.me).has(PermissionFlagsBits.SendMessages));
+    if (channel) {
+      await channel.send('Please provide a log channel ID for reaction role logs (e.g., 123456789012345678).');
+      const filter = m => m.author.id === user.id && /^\d{17,19}$/.test(m.content.trim());
+      try {
+        const collected = await channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
+        logChannelId = collected.first().content.trim();
+        config.logChannelId = logChannelId;
+        fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+      } catch (e) {
+        return;
+      }
+    } else {
+      return;
+    }
+  }
+  const logChannel = reaction.message.guild.channels.cache.get(logChannelId);
+  if (logChannel) {
+    const label = rr.emojiLabels && rr.emojiLabels[emoji] ? rr.emojiLabels[emoji] : '';
+    logChannel.send(`:white_check_mark: ${user.tag} (${user.id}) assigned themselves <@&${roleId}> (${label}) via ${emoji}`);
+  }
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
   if (user.bot) return;
   const rr = config.reactionRoles;
-  if (!rr || reaction.message.id !== rr.messageId) return;
-  if (reaction.partial) {
-    try { await reaction.fetch(); } catch (e) { return; }
-  }
-  const roleId = rr.emojiRoleMap[reaction.emoji.name];
+  if (!rr || !rr.messageId || reaction.message.id !== rr.messageId) return;
+  const emoji = reaction.emoji.name;
+  const roleId = rr.emojiRoleMap && rr.emojiRoleMap[emoji];
   if (!roleId) return;
   const member = await reaction.message.guild.members.fetch(user.id);
-  if (member) member.roles.remove(roleId).catch(console.error);
+  await member.roles.remove(roleId);
+  // Log removal
+  let logChannelId = config.logChannelId;
+  if (!logChannelId) {
+    // Prompt for log channel if not set
+    const channel = reaction.message.guild.channels.cache.find(c => c.type === ChannelType.GuildText && c.permissionsFor(reaction.message.guild.members.me).has(PermissionFlagsBits.SendMessages));
+    if (channel) {
+      await channel.send('Please provide a log channel ID for reaction role logs (e.g., 123456789012345678).');
+      const filter = m => m.author.id === user.id && /^\d{17,19}$/.test(m.content.trim());
+      try {
+        const collected = await channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
+        logChannelId = collected.first().content.trim();
+        config.logChannelId = logChannelId;
+        fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+      } catch (e) {
+        return;
+      }
+    } else {
+      return;
+    }
+  }
+  const logChannel = reaction.message.guild.channels.cache.get(logChannelId);
+  if (logChannel) {
+    const label = rr.emojiLabels && rr.emojiLabels[emoji] ? rr.emojiLabels[emoji] : '';
+    logChannel.send(`:x: ${user.tag} (${user.id}) removed <@&${roleId}> (${label}) via ${emoji}`);
+  }
 });
 
 async function start() {
