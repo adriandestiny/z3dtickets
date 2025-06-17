@@ -89,4 +89,15 @@ client.on('messageReactionRemove', async (reaction, user) => {
   if (member) member.roles.remove(roleId).catch(console.error);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+async function start() {
+  let token = process.env.DISCORD_TOKEN;
+  if (!token) {
+    const readline = require('readline');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    token = await new Promise(resolve => rl.question('Enter your Discord bot token: ', resolve));
+    rl.close();
+  }
+  client.login(token);
+}
+
+start();
