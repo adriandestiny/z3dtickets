@@ -1,7 +1,7 @@
 const { AttachmentBuilder } = require('discord.js');
 const fs = require('fs');
 
-async function sendTranscript(channel, user, logChannel, client) {
+async function sendTranscript(channel, user, logChannel, client, meta, closedByUser) {
   // Fetch all messages in the channel
   let messages = [];
   let lastId;
@@ -17,6 +17,16 @@ async function sendTranscript(channel, user, logChannel, client) {
   const transcript = messages.map(m => `[${m.createdAt.toISOString()}] ${m.author.tag}: ${m.content}`).join('\n');
   const fileName = `transcript-${channel.id}.txt`;
   fs.writeFileSync(fileName, transcript);
+  // Prepare log info
+  let logInfo = '**Transcript for ticket**\n';
+  if (meta) {
+    logInfo += `**Creator:** ${meta.creatorTag} (${meta.creatorId})\n`;
+    logInfo += `**Created:** ${new Date(meta.createdAt).toLocaleString()}\n`;
+  }
+  logInfo += `**Closed:** ${new Date().toLocaleString()}\n`;
+  if (closedByUser) {
+    logInfo += `**Closed by:** ${closedByUser.tag} (${closedByUser.id})`;
+  }
   // Send to user
   try {
     await user.send({ content: 'Here is your ticket transcript.', files: [fileName] });
@@ -26,7 +36,7 @@ async function sendTranscript(channel, user, logChannel, client) {
   // Send to log channel
   if (logChannel) {
     const attachment = new AttachmentBuilder(fileName);
-    await logChannel.send({ content: `Transcript for ticket <#${channel.id}>`, files: [attachment] });
+    await logChannel.send({ content: logInfo, files: [attachment] });
   }
   fs.unlinkSync(fileName);
 }

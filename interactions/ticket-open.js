@@ -39,6 +39,13 @@ module.exports = {
       if (logChannel) logChannel.send(`:ticket: Ticket opened by ${user.tag} (${user.id}) in <#${channel.id}>`);
       client.emit('ticketOpened', { user: user.tag, channel: channel.name });
       await interaction.reply({ content: `Ticket created: <#${channel.id}>`, ephemeral: true });
+      // Store ticket metadata for transcript logging
+      if (!global.ticketMeta) global.ticketMeta = {};
+      global.ticketMeta[channel.id] = {
+        creatorId: user.id,
+        creatorTag: user.tag,
+        createdAt: new Date().toISOString()
+      };
     });
   }
 };
