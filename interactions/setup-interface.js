@@ -30,6 +30,18 @@ module.exports = {
           const collected2 = await interaction.channel.awaitMessages({ filter: filter2, max: 1, time: 60000, errors: ['time'] });
           const logChannelId = collected2.first().content.trim();
           config.logChannelId = logChannelId;
+          // Ask for roles to notify (mention or IDs, space/comma separated)
+          await interaction.channel.send('Please mention the role(s) to notify when a ticket is opened, or provide their IDs (separated by spaces or commas).');
+          const filter3 = m => m.author.id === interaction.user.id && (m.mentions.roles.size > 0 || /\d{17,19}/.test(m.content));
+          const collected3 = await interaction.channel.awaitMessages({ filter: filter3, max: 1, time: 60000, errors: ['time'] });
+          const msg3 = collected3.first();
+          let notifyRoleIds = [];
+          if (msg3.mentions.roles.size > 0) {
+            notifyRoleIds = msg3.mentions.roles.map(r => r.id);
+          } else {
+            notifyRoleIds = msg3.content.match(/\d{17,19}/g) || [];
+          }
+          config.ticketNotifyRoleIds = notifyRoleIds;
           fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
           await interaction.channel.send('✅ Ticket support setup complete!');
         } catch (e) {
