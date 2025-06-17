@@ -17,7 +17,6 @@ This repository contains a Discord bot for the Z3D community using [discord.js](
 - Ticket system with open/close buttons
 - Reaction role assignment
 - Node.js using discord.js
-
 - Web-based admin interface for reaction roles and debug
 
 
