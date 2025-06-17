@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Z3dTickets Admin</title>
+  </head>
+  <body>
+    <h1>Z3dTickets Admin Interface</h1>
+    <h2>Credentials</h2>
+    <form method="post" action="/admin/credentials">
+      <label>DISCORD_TOKEN <input type="text" name="DISCORD_TOKEN" value="<%= env.DISCORD_TOKEN || '' %>" /></label>
+      <button type="submit">Save</button>
+    </form>
+
+    <h2>Reaction Roles</h2>
+    <form method="post" action="/admin/reaction-roles">
+      <label>Message Content<br><textarea name="messageContent" rows="2" cols="60"><%= config.reactionRoles && config.reactionRoles.messageContent %></textarea></label><br>
+      <label>Emojis (comma separated) <input type="text" name="emojis" value="<%= Object.keys(config.reactionRoles && config.reactionRoles.emojiRoleMap || {}).join(',') %>" /></label><br>
+      <label>Role IDs (comma separated) <input type="text" name="roleIds" value="<%= Object.values(config.reactionRoles && config.reactionRoles.emojiRoleMap || {}).join(',') %>" /></label><br>
+      <button type="submit">Save</button>
+    </form>
+
+    <h2>Debug</h2>
+    <a href="/admin/debug">View JSON Debug Info</a>
+  </body>
+</html>
