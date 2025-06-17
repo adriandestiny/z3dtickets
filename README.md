@@ -10,7 +10,10 @@ tags:
 
 This repository contains a Discord bot for the Z3D community using [discord.js](https://discord.js.org/) with ticket and reaction role functionality.
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/PxM3nl)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+Use Railway's "Deploy from GitHub" option to deploy this repository. Railway will
+prompt you for required environment variables such as `DISCORD_TOKEN` when you
+deploy.
 
 ## ✨ Features
 
@@ -26,7 +29,8 @@ This repository contains a Discord bot for the Z3D community using [discord.js](
 
 - Set the `DISCORD_TOKEN` environment variable (Railway prompts for it on deploy)
 
-- Start the bot using `node index.js`
+- Start the bot using `npm start` (or `node index.js`) and you'll be prompted
+  for the token if the environment variable is unset
 - Optional admin UI: `npm run admin` then visit <http://localhost:3000/admin>
 
 ## 📝 Notes

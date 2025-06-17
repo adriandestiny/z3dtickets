@@ -1,4 +1,4 @@
 providers = ["node"]
 
 [start]
-cmd = "node index.js"
+cmd = "npm start"
