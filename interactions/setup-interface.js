@@ -9,8 +9,8 @@ module.exports = {
       if (!interaction.isButton()) return;
       // Ticket setup flow
       if (interaction.customId === 'setup_ticket_flow') {
-        if (interaction.user.id !== interaction.guild.ownerId) {
-          return interaction.reply({ content: 'Only the server owner can run this setup.', ephemeral: true });
+        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+          return interaction.reply({ content: 'Only administrators can run this setup.', ephemeral: true });
         }
         // Ask for support role (mention or ID)
         await interaction.reply({ content: 'Please mention the support role (e.g., @Support) or provide the role ID (e.g., 123456789012345678).', ephemeral: true });
@@ -50,8 +50,8 @@ module.exports = {
       }
       // Reaction role setup flow
       if (interaction.customId === 'setup_reaction_roles_flow') {
-        if (interaction.user.id !== interaction.guild.ownerId) {
-          return interaction.reply({ content: 'Only the server owner can run this setup.', ephemeral: true });
+        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+          return interaction.reply({ content: 'Only administrators can run this setup.', ephemeral: true });
         }
         config.reactionRoles = config.reactionRoles || { emojiRoleMap: {} };
         let adding = true;

@@ -5,7 +5,7 @@ const config = require('../config.json');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setup')
-    .setDescription('Start the interactive setup interface (owner only)')
+    .setDescription('Start the interactive setup interface (admin only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
     if (interaction.user.id !== interaction.guild.ownerId) {
