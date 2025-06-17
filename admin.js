@@ -8,6 +8,17 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 
+function basicAuth(req, res, next) {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) return next();
+  const header = req.headers.authorization || '';
+  const token = header.split(' ')[1] || '';
+  const [user, pass] = Buffer.from(token, 'base64').toString().split(':');
+  if (pass === adminPassword) return next();
+  res.set('WWW-Authenticate', 'Basic realm="Admin"');
+  res.status(401).send('Authentication required.');
+}
+
 function loadConfig() {
   return JSON.parse(fs.readFileSync('./config.json', 'utf8'));
 }
@@ -31,20 +42,20 @@ function saveEnv(env) {
   fs.writeFileSync('.env', Object.entries(env).map(([k,v]) => `${k}=${v}`).join('\n'));
 }
 
-app.get('/admin', (req, res) => {
+app.get('/admin', basicAuth, (req, res) => {
   const config = loadConfig();
   const env = loadEnv();
   res.render('admin', { config, env });
 });
 
-app.post('/admin/credentials', (req, res) => {
+app.post('/admin/credentials', basicAuth, (req, res) => {
   const env = loadEnv();
   env.DISCORD_TOKEN = req.body.DISCORD_TOKEN || '';
   saveEnv(env);
   res.redirect('/admin');
 });
 
-app.post('/admin/reaction-roles', (req, res) => {
+app.post('/admin/reaction-roles', basicAuth, (req, res) => {
   const config = loadConfig();
   config.reactionRoles = {
     messageId: '',
