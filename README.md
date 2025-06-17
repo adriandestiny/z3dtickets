@@ -12,39 +12,28 @@ This repository contains a Discord bot for the Z3D community using [discord.js](
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
 Use Railway's "Deploy from GitHub" option to deploy this repository. Railway will
-prompt you for required environment variables such as `DISCORD_TOKEN` when you
-
-deploy. The admin interface will be served from your Railway domain at `/admin`.
-Railway automatically assigns a public domain and allows custom domains on paid
-plans.
-
+prompt you for required environment variables such as `DISCORD_TOKEN` and `CLIENT_ID` when you
+deploy. **You must set these tokens in the Railway dashboard under the Variables/Environment tab.**
 
 ## ✨ Features
 
 - Ticket system with open/close buttons
 - Reaction role assignment
 - Node.js using discord.js
-- Web-based admin interface for reaction roles and debug
 
-
-## 💁‍♀️ How to use
+## 👩‍💻 How to use
 
 - Install packages using `npm install`
 
-- Set the `DISCORD_TOKEN` and `CLIENT_ID` environment variables 
+- Set the `DISCORD_TOKEN` and `CLIENT_ID` environment variables in the Railway dashboard before deploying.
 
-- Start both the bot and admin interface using `npm start`. You'll be
-  prompted for the token if the environment variable is unset.
-- To run just the bot use `npm run bot`.
-- The admin UI alone can still be launched with `npm run admin` and then visit
-  <http://localhost:3000/admin> (or your Railway domain `/admin`).
+- Start the bot using `npm start`. You'll be
+  prompted for the token if the environment variable is unset (for local development only).
 
-
-If you change settings through the admin interface, restart the bot so it reloads
-the updated configuration. Alternatively, use the provided reload function in
-`utils.js` to reread `config.json` without a full restart.
+If you change settings through the Discord setup commands, the bot will reload
+the updated configuration automatically.
 
 ## 📝 Notes
 
 This is a basic bot that relies on slash commands. For more details on extending the bot see the [discord.js documentation](https://discord.js.org/#/docs/main/stable/general/welcome).
-The Discord token should be configured as an environment variable (e.g. when deploying on Railway) and cannot be edited through the admin UI.
+The Discord token should be configured as an environment variable (e.g. when deploying on Railway) and cannot be edited through any web UI.

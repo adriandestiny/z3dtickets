@@ -1,1 +1,0 @@
-// This file has been removed as the web admin interface is no longer used.
