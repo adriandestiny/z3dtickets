@@ -25,6 +25,10 @@ This repository contains a Discord bot for the Z3D community using [discord.js](
 - Start the bot using `node index.js`
 - Optional admin UI: `npm run admin` then visit <http://localhost:3000/admin>
 
+If you change settings through the admin interface, restart the bot so it reloads
+the updated configuration. Alternatively, use the provided reload function in
+`utils.js` to reread `config.json` without a full restart.
+
 ## 📝 Notes
 
 This is a basic bot with the prefix `!`, more information can be founded at their [offical documentation](https://discordpy.readthedocs.io/en/stable/api.html).
