@@ -10,10 +10,12 @@ module.exports = {
       // Ticket setup flow
       if (interaction.customId === 'setup_ticket_flow') {
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-          return interaction.reply({ content: 'Only administrators can run this setup.', ephemeral: true });
+          return interaction.reply({ content: 'Only administrators can run this setup.', flags: 64 });
         }
+        // Immediately reply to the interaction to avoid expiration
+        await interaction.reply({ content: 'Ticket setup started! Please follow the instructions in this channel.', flags: 64 });
         // Ask for support agent role (mention or ID)
-        await interaction.reply({ content: 'Please mention the support agent role (e.g., @SupportAgent) or provide the role ID (e.g., 123456789012345678). Only members with this role or admins will be able to view tickets.', ephemeral: true });
+        await interaction.channel.send('Please mention the support agent role (e.g., @SupportAgent) or provide the role ID (e.g., 123456789012345678). Only members with this role or admins will be able to view tickets.');
         const filter = m => m.author.id === interaction.user.id && (m.mentions.roles.size > 0 || /^\d{17,19}$/.test(m.content.trim()));
         try {
           const collected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
