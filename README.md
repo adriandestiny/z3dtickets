@@ -40,6 +40,10 @@ plans.
   <http://localhost:3000/admin> (or your Railway domain `/admin`).
 
 
+If you change settings through the admin interface, restart the bot so it reloads
+the updated configuration. Alternatively, use the provided reload function in
+`utils.js` to reread `config.json` without a full restart.
+
 ## 📝 Notes
 
 This is a basic bot that relies on slash commands. For more details on extending the bot see the [discord.js documentation](https://discord.js.org/#/docs/main/stable/general/welcome).
