@@ -25,8 +25,13 @@ module.exports = {
         .setLabel('Close Ticket')
         .setStyle(ButtonStyle.Danger);
       const row = new ActionRowBuilder().addComponents(closeBtn);
+      // Notify roles
+      let notifyMentions = '';
+      if (Array.isArray(config.ticketNotifyRoleIds) && config.ticketNotifyRoleIds.length > 0) {
+        notifyMentions = config.ticketNotifyRoleIds.map(id => `<@&${id}>`).join(' ');
+      }
       await channel.send({
-        content: `<@${user.id}> Your ticket is open. A support member will be with you soon.`,
+        content: `${notifyMentions} <@${user.id}> Your ticket is open. A support member will be with you soon.`.trim(),
         components: [row]
       });
       // Log event

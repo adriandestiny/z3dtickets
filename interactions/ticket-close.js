@@ -1,4 +1,5 @@
 const config = require('../config.json');
+const { sendTranscript } = require('../utils/transcript');
 
 module.exports = {
   init(client) {
@@ -22,6 +23,8 @@ module.exports = {
         const logChannel = channel.guild.channels.cache.get(config.logChannelId);
         if (logChannel) logChannel.send(`:lock: Ticket closed by ${user.tag} (${user.id}) in <#${channel.id}>`);
         client.emit('ticketClosed', { user: user.tag, channel: channel.name });
+        // Send transcript to user and log channel
+        await sendTranscript(channel, user, logChannel, client);
         await channel.send('This ticket will be deleted in 3 seconds...');
         setTimeout(() => channel.delete(), 3000);
       }
