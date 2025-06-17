@@ -1,11 +1,12 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
 const config = require('../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setup-reaction-roles')
-    .setDescription('Post a reaction role message and record its ID'),
+    .setDescription('Post a reaction role message and record its ID')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
     const rr = config.reactionRoles;
     if (!rr || !rr.emojiRoleMap || Object.keys(rr.emojiRoleMap).length === 0) {
