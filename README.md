@@ -29,8 +29,8 @@ deploy.
 
 - Set the `DISCORD_TOKEN` environment variable (Railway prompts for it on deploy)
 
-- Start the bot using `node index.js` (you'll be prompted for the token if the
-  environment variable is unset)
+- Start the bot using `npm start` (or `node index.js`) and you'll be prompted
+  for the token if the environment variable is unset
 - Optional admin UI: `npm run admin` then visit <http://localhost:3000/admin>
 
 ## 📝 Notes
