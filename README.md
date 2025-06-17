@@ -1,26 +1,27 @@
 ---
-title: Discord Python bot
-description: A Discord bot written in Python
+title: Z3D Discord Bot
+description: Discord bot with ticket and reaction role support
 tags:
-  - python
-  - discord.py
+  - nodejs
+  - discord.js
 ---
 
-# Discord.py Example
+# Z3dTickets
 
-This example starts a Discord bot using [discord.py](https://discordpy.readthedocs.io/en/stable/).
+This repository contains a Discord bot for the Z3D community using [discord.js](https://discord.js.org/) with ticket and reaction role functionality.
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/PxM3nl)
 
 ## ✨ Features
 
-- Python
-- Discord.py
+- Ticket system with open/close buttons
+- Reaction role assignment
+- Node.js using discord.js
 
 ## 💁‍♀️ How to use
 
-- Install packages using `pip install -r requirements.txt`
-- Start the bot using `python main.py`
+- Install packages using `npm install`
+- Start the bot using `node index.js`
 
 ## 📝 Notes
 
