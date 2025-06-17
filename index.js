@@ -12,9 +12,10 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions
   ],
-  partials: [Partials.Channel]
+  partials: [Partials.Channel, Partials.Message, Partials.Reaction]
 });
 
 client.commands = new Collection();
@@ -59,6 +60,33 @@ client.on('ticketClosed', (data) => {
     channel: data.channel,
     timestamp: new Date().toISOString()
   });
+});
+
+// Reaction role handling
+client.on('messageReactionAdd', async (reaction, user) => {
+  if (user.bot) return;
+  const rr = config.reactionRoles;
+  if (!rr || reaction.message.id !== rr.messageId) return;
+  if (reaction.partial) {
+    try { await reaction.fetch(); } catch (e) { return; }
+  }
+  const roleId = rr.emojiRoleMap[reaction.emoji.name];
+  if (!roleId) return;
+  const member = await reaction.message.guild.members.fetch(user.id);
+  if (member) member.roles.add(roleId).catch(console.error);
+});
+
+client.on('messageReactionRemove', async (reaction, user) => {
+  if (user.bot) return;
+  const rr = config.reactionRoles;
+  if (!rr || reaction.message.id !== rr.messageId) return;
+  if (reaction.partial) {
+    try { await reaction.fetch(); } catch (e) { return; }
+  }
+  const roleId = rr.emojiRoleMap[reaction.emoji.name];
+  if (!roleId) return;
+  const member = await reaction.message.guild.members.fetch(user.id);
+  if (member) member.roles.remove(roleId).catch(console.error);
 });
 
 client.login(process.env.DISCORD_TOKEN);
