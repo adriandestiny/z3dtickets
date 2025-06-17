@@ -7,16 +7,18 @@ module.exports = {
       if (!interaction.isButton() || interaction.customId !== 'open_ticket') return;
       const guild = interaction.guild;
       const user = interaction.user;
-      const supportRole = config.supportRoleId;
-      // Create ticket channel
+      const supportAgentRole = config.supportAgentRoleId;
+      // Create ticket channel with restricted permissions
       const channel = await guild.channels.create({
         name: `ticket-${user.username}`,
         type: ChannelType.GuildText,
         permissionOverwrites: [
           { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
           { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-          { id: supportRole, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-          { id: guild.members.me.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
+          { id: supportAgentRole, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+          { id: guild.roles.everyone, deny: [PermissionFlagsBits.ViewChannel] },
+          { id: guild.members.me.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+          { id: guild.roles.cache.find(r => r.permissions.has(PermissionFlagsBits.Administrator))?.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
         ]
       });
       // Add close button

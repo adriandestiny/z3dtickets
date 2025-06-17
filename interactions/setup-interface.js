@@ -12,18 +12,18 @@ module.exports = {
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
           return interaction.reply({ content: 'Only administrators can run this setup.', ephemeral: true });
         }
-        // Ask for support role (mention or ID)
-        await interaction.reply({ content: 'Please mention the support role (e.g., @Support) or provide the role ID (e.g., 123456789012345678).', ephemeral: true });
+        // Ask for support agent role (mention or ID)
+        await interaction.reply({ content: 'Please mention the support agent role (e.g., @SupportAgent) or provide the role ID (e.g., 123456789012345678). Only members with this role or admins will be able to view tickets.', ephemeral: true });
         const filter = m => m.author.id === interaction.user.id && (m.mentions.roles.size > 0 || /^\d{17,19}$/.test(m.content.trim()));
         try {
           const collected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
-          let roleId;
+          let supportAgentRoleId;
           if (collected.first().mentions.roles.size > 0) {
-            roleId = collected.first().mentions.roles.first().id;
+            supportAgentRoleId = collected.first().mentions.roles.first().id;
           } else {
-            roleId = collected.first().content.trim();
+            supportAgentRoleId = collected.first().content.trim();
           }
-          config.supportRoleId = roleId;
+          config.supportAgentRoleId = supportAgentRoleId;
           // Ask for log channel ID
           await interaction.channel.send('Please provide the log channel ID (e.g., 1375124421659857019).');
           const filter2 = m => m.author.id === interaction.user.id && /^\d{17,19}$/.test(m.content.trim());
@@ -53,22 +53,33 @@ module.exports = {
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
           return interaction.reply({ content: 'Only administrators can run this setup.', ephemeral: true });
         }
-        config.reactionRoles = config.reactionRoles || { emojiRoleMap: {} };
+        config.reactionRoles = config.reactionRoles || { emojiRoleMap: {}, emojiLabels: {} };
         let adding = true;
-        await interaction.reply({ content: 'Send an emoji and a role ID to map (e.g., 🔥 123456789012345678), or type `done` to finish.', ephemeral: true });
+        await interaction.reply({ content: 'Send an emoji, mention a role, and a label for the button (e.g., 🔥 @Role Support), or type `done` to finish. The label is what the reaction is for (e.g., Support, Events, Updates, etc).', ephemeral: true });
         while (adding) {
           const filter = m => m.author.id === interaction.user.id;
           try {
             const collected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
             const msg = collected.first();
             if (msg.content.toLowerCase() === 'done') break;
-            const [emoji, roleId] = msg.content.trim().split(/\s+/);
-            if (!emoji || !/^\d{17,19}$/.test(roleId)) {
-              await interaction.channel.send('Invalid format. Please send an emoji and a role ID (e.g., 🔥 123456789012345678).');
+            // Parse: emoji, role (mention or ID), label
+            const match = msg.content.trim().match(/^(\p{Emoji}|\S+)\s+(<@&\d{17,19}>|\d{17,19})\s+(.+)$/u);
+            if (!match) {
+              await interaction.channel.send('Invalid format. Please send an emoji, mention a role, and a label (e.g., 🔥 @Role Support).');
               continue;
             }
+            const emoji = match[1];
+            let roleId;
+            if (match[2].startsWith('<@&')) {
+              roleId = match[2].replace(/<@&(\d{17,19})>/, '$1');
+            } else {
+              roleId = match[2];
+            }
+            const label = match[3].trim();
             config.reactionRoles.emojiRoleMap[emoji] = roleId;
-            await interaction.channel.send(`Mapped ${emoji} to role ID ${roleId}.`);
+            config.reactionRoles.emojiLabels = config.reactionRoles.emojiLabels || {};
+            config.reactionRoles.emojiLabels[emoji] = label;
+            await interaction.channel.send(`Mapped ${emoji} to <@&${roleId}> for "${label}".`);
           } catch (e) {
             await interaction.channel.send('Setup timed out or failed. Please try again.');
             break;
