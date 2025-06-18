@@ -1,12 +1,13 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, Events } = require('discord.js');
 const fs = require('fs');
-const config = require('../config.json');
+let config = require('../config.json');
 
 module.exports = {
   init(client) {
-    // Ticket setup flow
     client.on('interactionCreate', async interaction => {
       if (!interaction.isButton()) return;
+      const guildId = interaction.guild?.id;
+      if (!guildId) return;
       // Ticket setup flow
       if (interaction.customId === 'setup_ticket_flow') {
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
@@ -25,13 +26,14 @@ module.exports = {
           } else {
             supportAgentRoleId = collected.first().content.trim();
           }
-          config.supportAgentRoleId = supportAgentRoleId;
+          if (!config[guildId]) config[guildId] = {};
+          config[guildId].supportAgentRoleId = supportAgentRoleId;
           // Ask for log channel ID
           await interaction.channel.send('Please provide the log channel ID (e.g., 1375124421659857019).');
           const filter2 = m => m.author.id === interaction.user.id && /^\d{17,19}$/.test(m.content.trim());
           const collected2 = await interaction.channel.awaitMessages({ filter: filter2, max: 1, time: 60000, errors: ['time'] });
           const logChannelId = collected2.first().content.trim();
-          config.logChannelId = logChannelId;
+          config[guildId].logChannelId = logChannelId;
           // Ask for roles to notify (mention or IDs, space/comma separated)
           await interaction.channel.send('Please mention the role(s) to notify when a ticket is opened, or provide their IDs (separated by spaces or commas).');
           const filter3 = m => m.author.id === interaction.user.id && (m.mentions.roles.size > 0 || /\d{17,19}/.test(m.content));
@@ -43,7 +45,7 @@ module.exports = {
           } else {
             notifyRoleIds = msg3.content.match(/\d{17,19}/g) || [];
           }
-          config.ticketNotifyRoleIds = notifyRoleIds;
+          config[guildId].ticketNotifyRoleIds = notifyRoleIds;
           fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
           await interaction.channel.send('✅ Ticket support setup complete!');
         } catch (e) {
@@ -55,7 +57,8 @@ module.exports = {
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
           return interaction.reply({ content: 'Only administrators can run this setup.', ephemeral: true });
         }
-        config.reactionRoles = config.reactionRoles || { emojiRoleMap: {}, emojiLabels: {} };
+        if (!config[guildId]) config[guildId] = {};
+        config[guildId].reactionRoles = config[guildId].reactionRoles || { emojiRoleMap: {}, emojiLabels: {} };
         let adding = true;
         await interaction.reply({ content: 'Send an emoji, mention a role, and a label for the button (e.g., 🔥 @Role Support), or type `done` to finish. The label is what the reaction is for (e.g., Support, Events, Updates, etc).', ephemeral: true });
         while (adding) {
@@ -78,9 +81,9 @@ module.exports = {
               roleId = match[2];
             }
             const label = match[3].trim();
-            config.reactionRoles.emojiRoleMap[emoji] = roleId;
-            config.reactionRoles.emojiLabels = config.reactionRoles.emojiLabels || {};
-            config.reactionRoles.emojiLabels[emoji] = label;
+            config[guildId].reactionRoles.emojiRoleMap[emoji] = roleId;
+            config[guildId].reactionRoles.emojiLabels = config[guildId].reactionRoles.emojiLabels || {};
+            config[guildId].reactionRoles.emojiLabels[emoji] = label;
             await interaction.channel.send(`Mapped ${emoji} to <@&${roleId}> for "${label}".`);
           } catch (e) {
             await interaction.channel.send('Setup timed out or failed. Please try again.');
