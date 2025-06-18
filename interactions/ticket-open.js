@@ -7,19 +7,30 @@ module.exports = {
       if (!interaction.isButton() || interaction.customId !== 'open_ticket') return;
       const guild = interaction.guild;
       const user = interaction.user;
-      const supportAgentRole = config.supportAgentRoleId;
+      const supportAgentRole = config.supportRoleId;
+      // Collect all admin role IDs
+      const adminRoleIds = guild.roles.cache.filter(r => r.permissions.has(PermissionFlagsBits.Administrator)).map(r => r.id);
+      // Build permission overwrites, filtering out any undefined/invalid IDs
+      const permissionOverwrites = [
+        { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] }, // @everyone
+        { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+      ];
+      if (supportAgentRole && guild.roles.cache.has(supportAgentRole)) {
+        permissionOverwrites.push({ id: supportAgentRole, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] });
+      }
+      if (guild.members.me && guild.members.me.id) {
+        permissionOverwrites.push({ id: guild.members.me.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] });
+      }
+      for (const id of adminRoleIds) {
+        if (id && id !== supportAgentRole) {
+          permissionOverwrites.push({ id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] });
+        }
+      }
       // Create ticket channel with restricted permissions
       const channel = await guild.channels.create({
         name: `ticket-${user.username}`,
         type: ChannelType.GuildText,
-        permissionOverwrites: [
-          { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
-          { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-          { id: supportAgentRole, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-          { id: guild.roles.everyone, deny: [PermissionFlagsBits.ViewChannel] },
-          { id: guild.members.me.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-          { id: guild.roles.cache.find(r => r.permissions.has(PermissionFlagsBits.Administrator))?.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
-        ]
+        permissionOverwrites
       });
       // Add close button
       const closeBtn = new ButtonBuilder()
@@ -40,7 +51,7 @@ module.exports = {
       const logChannel = guild.channels.cache.get(config.logChannelId);
       if (logChannel) logChannel.send(`:ticket: Ticket opened by ${user.tag} (${user.id}) in <#${channel.id}>`);
       client.emit('ticketOpened', { user: user.tag, channel: channel.name });
-      await interaction.reply({ content: `Ticket created: <#${channel.id}>`, ephemeral: true });
+      await interaction.reply({ content: `Ticket created: <#${channel.id}>`, flags: 64 });
       // Store ticket metadata for transcript logging
       if (!global.ticketMeta) global.ticketMeta = {};
       global.ticketMeta[channel.id] = {
