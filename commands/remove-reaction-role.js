@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
-const config = require('../config.json');
+let config = require('../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,12 +16,23 @@ module.exports = {
     if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: 'Only administrators can use this command.', flags: 64 });
     }
-    const emoji = interaction.options.getString('emoji');
-    if (!config.reactionRoles || !config.reactionRoles.emojiRoleMap || !config.reactionRoles.emojiRoleMap[emoji]) {
-      return interaction.reply({ content: `No mapping found for emoji ${emoji}.`, ephemeral: true });
+    const guildId = interaction.guild.id;
+    if (!config[guildId] || !config[guildId].reactionRoles) {
+      return interaction.reply({ content: 'No reaction roles configured for this guild.', ephemeral: true });
     }
-    delete config.reactionRoles.emojiRoleMap[emoji];
+    const emoji = interaction.options.getString('emoji');
+    const hasMapping = config[guildId].reactionRoles.emojiRoleMap && config[guildId].reactionRoles.emojiRoleMap[emoji];
+    const hasLabel = config[guildId].reactionRoles.emojiLabels && config[guildId].reactionRoles.emojiLabels[emoji];
+    if (!hasMapping && !hasLabel) {
+      return interaction.reply({ content: `No mapping or label found for emoji ${emoji}.`, ephemeral: true });
+    }
+    if (hasMapping) {
+      delete config[guildId].reactionRoles.emojiRoleMap[emoji];
+    }
+    if (hasLabel) {
+      delete config[guildId].reactionRoles.emojiLabels[emoji];
+    }
     fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
-    return interaction.reply({ content: `Removed mapping for emoji ${emoji}.`, ephemeral: true });
+    return interaction.reply({ content: `Removed mapping and/or label for emoji ${emoji}.`, ephemeral: true });
   }
 };
