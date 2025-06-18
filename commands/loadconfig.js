@@ -14,17 +14,13 @@ module.exports = {
       const file = collected.first().attachments.first();
       const response = await fetch(file.url);
       const json = await response.json();
-      // Write config and mappings to local files
+      const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
+      const guildId = interaction.guild.id;
       if (json.config) {
-        fs.writeFileSync('./config.json', JSON.stringify(json.config, null, 2));
+        config[guildId] = json.config;
+        fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
       }
-      // Optionally handle other files or mappings if needed
-      // Log to the log channel if set
-      let config = {};
-      try {
-        config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
-      } catch {}
-      const logChannelId = config.logChannelId;
+      const logChannelId = config[guildId] && config[guildId].logChannelId;
       if (logChannelId) {
         const logChannel = interaction.guild.channels.cache.get(logChannelId);
         if (logChannel) {

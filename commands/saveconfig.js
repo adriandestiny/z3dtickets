@@ -13,27 +13,21 @@ module.exports = {
     try {
       const collected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
       const backupChannelId = collected.first().content.trim();
-      // Read config and mappings from local files
       const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
-      let reactionRoles = {};
-      if (config.reactionRoles) {
-        reactionRoles = config.reactionRoles;
-      }
-      const backup = {
-        config,
-        reactionRoles
-      };
+      const guildId = interaction.guild.id;
+      const guildConfig = config[guildId] || {};
+      const backup = { config: guildConfig };
       const json = JSON.stringify(backup, null, 2);
-      const file = new AttachmentBuilder(Buffer.from(json), { name: `config-backup-${interaction.guild.id}.json` });
+      const file = new AttachmentBuilder(Buffer.from(json), { name: `config-backup-${guildId}.json` });
       const backupChannel = interaction.guild.channels.cache.get(backupChannelId);
       if (!backupChannel) {
         await interaction.followUp({ content: 'Invalid channel ID. Backup aborted.', flags: 64 });
         return;
       }
-      await backupChannel.send({ content: `Config backup for guild ${interaction.guild.id}`, files: [file] });
+      await backupChannel.send({ content: `Config backup for guild ${guildId}`, files: [file] });
       await interaction.followUp({ content: 'Config backup saved successfully!', flags: 64 });
       // Log to the log channel if set
-      const logChannelId = config.logChannelId;
+      const logChannelId = guildConfig.logChannelId;
       if (logChannelId) {
         const logChannel = interaction.guild.channels.cache.get(logChannelId);
         if (logChannel) {

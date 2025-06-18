@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
-const config = require('../config.json');
+let config = require('../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,11 +20,13 @@ module.exports = {
     if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: 'Only administrators can use this command.', flags: 64 });
     }
+    const guildId = interaction.guild.id;
+    if (!config[guildId]) config[guildId] = {};
+    if (!config[guildId].reactionRoles) config[guildId].reactionRoles = {};
+    if (!config[guildId].reactionRoles.emojiRoleMap) config[guildId].reactionRoles.emojiRoleMap = {};
     const emoji = interaction.options.getString('emoji');
     const role = interaction.options.getRole('role');
-    if (!config.reactionRoles) config.reactionRoles = { emojiRoleMap: {} };
-    if (!config.reactionRoles.emojiRoleMap) config.reactionRoles.emojiRoleMap = {};
-    config.reactionRoles.emojiRoleMap[emoji] = role.id;
+    config[guildId].reactionRoles.emojiRoleMap[emoji] = role.id;
     fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
     return interaction.reply({ content: `Mapped emoji ${emoji} to role <@&${role.id}>.`, ephemeral: true });
   }
