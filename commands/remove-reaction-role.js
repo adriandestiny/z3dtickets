@@ -13,8 +13,8 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
     // Only allow server owner
-    if (interaction.guild.ownerId !== interaction.user.id) {
-      return interaction.reply({ content: 'Only the server owner can use this command.', ephemeral: true });
+    if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      return interaction.reply({ content: 'Only administrators can use this command.', flags: 64 });
     }
     const emoji = interaction.options.getString('emoji');
     if (!config.reactionRoles || !config.reactionRoles.emojiRoleMap || !config.reactionRoles.emojiRoleMap[emoji]) {
