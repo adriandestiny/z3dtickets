@@ -135,6 +135,16 @@ client.on('messageReactionRemove', async (reaction, user) => {
   }
 });
 
+// Auto-register slash commands on Railway or production deploy
+if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_STATIC_URL || process.env.RAILWAY_ENVIRONMENT) {
+  try {
+    require('./deploy-commands.js');
+    console.log('Auto-registered slash commands on deploy.');
+  } catch (e) {
+    console.error('Failed to auto-register slash commands:', e);
+  }
+}
+
 async function start() {
   let token = process.env.DISCORD_TOKEN;
   if (!token) {
