@@ -1,6 +1,30 @@
-const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 let config = require('../config.json');
+
+function buildAdminPanelEmbed(guildId) {
+  const embed = new EmbedBuilder()
+    .setTitle('Admin Panel')
+    .setColor(0x5865F2)
+    .addFields(
+      { name: 'Welcome Message', value: config[guildId]?.welcomeMessage || 'Not set', inline: false },
+      { name: 'Log Channel', value: config[guildId]?.logChannelId ? `<#${config[guildId].logChannelId}> (${config[guildId].logChannelId})` : 'Not set', inline: false },
+      { name: 'Support Role', value: config[guildId]?.supportAgentRoleId ? `<@&${config[guildId].supportAgentRoleId}> (${config[guildId].supportAgentRoleId})` : 'Not set', inline: false },
+      { name: 'Mention Roles', value: (config[guildId]?.ticketNotifyRoleIds && config[guildId].ticketNotifyRoleIds.length) ? config[guildId].ticketNotifyRoleIds.map(id => `<@&${id}>`).join(', ') : 'Not set', inline: false },
+      { name: 'Reaction Message', value: config[guildId]?.reactionRoles?.messageContent || 'Not set', inline: false }
+    );
+  if (config[guildId]?.reactionRoles?.emojiRoleMap) {
+    let rrText = '';
+    for (const [emoji, roleId] of Object.entries(config[guildId].reactionRoles.emojiRoleMap)) {
+      const label = config[guildId].reactionRoles.emojiLabels && config[guildId].reactionRoles.emojiLabels[emoji] ? config[guildId].reactionRoles.emojiLabels[emoji] : '';
+      rrText += `\n${emoji} \u2192 <@&${roleId}> ${label ? `\u2014 ${label}` : ''}`;
+    }
+    embed.addFields({ name: 'Reaction Role Mappings', value: rrText || 'No reaction role mappings set.', inline: false });
+  } else {
+    embed.addFields({ name: 'Reaction Role Mappings', value: 'No reaction role mappings set.', inline: false });
+  }
+  return embed;
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,28 +34,7 @@ module.exports = {
   async execute(interaction) {
     const guildId = interaction.guild.id;
     if (!config[guildId]) config[guildId] = {};
-    let output = '**Admin Panel**\n';
-    // Show current welcome message
-    output += `Welcome Message: ${config[guildId].welcomeMessage || 'Not set'}\n`;
-    // Show current log channel
-    output += `Log Channel: ${config[guildId].logChannelId ? `<#${config[guildId].logChannelId}> (${config[guildId].logChannelId})` : 'Not set'}\n`;
-    // Show current support role
-    output += `Support Role: ${config[guildId].supportAgentRoleId ? `<@&${config[guildId].supportAgentRoleId}> (${config[guildId].supportAgentRoleId})` : 'Not set'}\n`;
-    // Show current mention roles
-    output += `Mention Roles: ${(config[guildId].ticketNotifyRoleIds && config[guildId].ticketNotifyRoleIds.length) ? config[guildId].ticketNotifyRoleIds.map(id => `<@&${id}>`).join(', ') : 'Not set'}\n`;
-    // Show current reaction message
-    output += `Reaction Message: ${config[guildId].reactionRoles && config[guildId].reactionRoles.messageContent ? config[guildId].reactionRoles.messageContent : 'Not set'}\n`;
-    // Show current reaction roles
-    if (config[guildId].reactionRoles && config[guildId].reactionRoles.emojiRoleMap) {
-      output += '\nReaction Role Mappings:';
-      for (const [emoji, roleId] of Object.entries(config[guildId].reactionRoles.emojiRoleMap)) {
-        const label = config[guildId].reactionRoles.emojiLabels && config[guildId].reactionRoles.emojiLabels[emoji] ? config[guildId].reactionRoles.emojiLabels[emoji] : '';
-        output += `\n${emoji} \u2192 <@&${roleId}> ${label ? `\u2014 ${label}` : ''}`;
-      }
-    } else {
-      output += '\nNo reaction role mappings set.';
-    }
-    // Panel buttons
+    const embed = buildAdminPanelEmbed(guildId);
     const updateBtn = new ButtonBuilder()
       .setCustomId('admin_panel_update')
       .setLabel('Update Panel')
@@ -41,6 +44,6 @@ module.exports = {
       .setLabel('Grab Support Role')
       .setStyle(ButtonStyle.Success);
     const row = new ActionRowBuilder().addComponents(updateBtn, grabSupportBtn);
-    await interaction.reply({ content: output, components: [row], ephemeral: true });
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
   }
 };

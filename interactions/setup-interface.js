@@ -93,6 +93,57 @@ module.exports = {
         fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
         await interaction.channel.send('✅ Reaction role setup complete!');
       }
+      // Admin panel update button
+      if (interaction.customId === 'admin_panel_update') {
+        const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+        const config = require('../config.json');
+        const embed = new EmbedBuilder()
+          .setTitle('Admin Panel')
+          .setColor(0x5865F2)
+          .addFields(
+            { name: 'Welcome Message', value: config[guildId]?.welcomeMessage || 'Not set', inline: false },
+            { name: 'Log Channel', value: config[guildId]?.logChannelId ? `<#${config[guildId].logChannelId}> (${config[guildId].logChannelId})` : 'Not set', inline: false },
+            { name: 'Support Role', value: config[guildId]?.supportAgentRoleId ? `<@&${config[guildId].supportAgentRoleId}> (${config[guildId].supportAgentRoleId})` : 'Not set', inline: false },
+            { name: 'Mention Roles', value: (config[guildId]?.ticketNotifyRoleIds && config[guildId].ticketNotifyRoleIds.length) ? config[guildId].ticketNotifyRoleIds.map(id => `<@&${id}>`).join(', ') : 'Not set', inline: false },
+            { name: 'Reaction Message', value: config[guildId]?.reactionRoles?.messageContent || 'Not set', inline: false }
+          );
+        if (config[guildId]?.reactionRoles?.emojiRoleMap) {
+          let rrText = '';
+          for (const [emoji, roleId] of Object.entries(config[guildId].reactionRoles.emojiRoleMap)) {
+            const label = config[guildId].reactionRoles.emojiLabels && config[guildId].reactionRoles.emojiLabels[emoji] ? config[guildId].reactionRoles.emojiLabels[emoji] : '';
+            rrText += `\n${emoji} \u2192 <@&${roleId}> ${label ? `\u2014 ${label}` : ''}`;
+          }
+          embed.addFields({ name: 'Reaction Role Mappings', value: rrText || 'No reaction role mappings set.', inline: false });
+        } else {
+          embed.addFields({ name: 'Reaction Role Mappings', value: 'No reaction role mappings set.', inline: false });
+        }
+        const updateBtn = new ButtonBuilder()
+          .setCustomId('admin_panel_update')
+          .setLabel('Update Panel')
+          .setStyle(ButtonStyle.Primary);
+        const grabSupportBtn = new ButtonBuilder()
+          .setCustomId('admin_panel_grab_support')
+          .setLabel('Grab Support Role')
+          .setStyle(ButtonStyle.Success);
+        const row = new ActionRowBuilder().addComponents(updateBtn, grabSupportBtn);
+        await interaction.update({ embeds: [embed], components: [row] });
+        return;
+      }
+      // Admin panel grab support role button
+      if (interaction.customId === 'admin_panel_grab_support') {
+        const config = require('../config.json');
+        const supportRoleId = config[guildId]?.supportAgentRoleId;
+        if (!supportRoleId) {
+          return interaction.reply({ content: 'No support role is set for this guild.', ephemeral: true });
+        }
+        const member = await interaction.guild.members.fetch(interaction.user.id);
+        if (member.roles.cache.has(supportRoleId)) {
+          return interaction.reply({ content: 'You already have the support role.', ephemeral: true });
+        }
+        await member.roles.add(supportRoleId);
+        await interaction.reply({ content: `You have been given the support role <@&${supportRoleId}>.`, ephemeral: true });
+        return;
+      }
     });
   }
 };
