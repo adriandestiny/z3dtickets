@@ -144,6 +144,42 @@ module.exports = {
         await interaction.reply({ content: `You have been given the support role <@&${supportRoleId}>.`, ephemeral: true });
         return;
       }
+      // Admin panel moderation buttons
+      if (interaction.isButton() && interaction.customId.startsWith('admin_')) {
+        const [ , action, userId ] = interaction.customId.split('_');
+        const config = require('../config.json');
+        const logChannelId = config[guildId]?.logChannelId;
+        let logChannel = null;
+        if (logChannelId) {
+          logChannel = interaction.guild.channels.cache.get(logChannelId);
+        }
+        if (action === 'report') {
+          if (logChannel) {
+            await logChannel.send(`📝 **Report:** <@${interaction.user.id}> reported <@${userId}>`);
+          }
+          await interaction.reply({ content: `User <@${userId}> has been reported and logged.`, ephemeral: true });
+          return;
+        }
+        if (action === 'warn') {
+          if (logChannel) {
+            await logChannel.send(`⚠️ **Warn:** <@${interaction.user.id}> warned <@${userId}>`);
+          }
+          await interaction.reply({ content: `User <@${userId}> has been warned and logged.`, ephemeral: true });
+          return;
+        }
+        if (action === 'ban') {
+          try {
+            await interaction.guild.members.ban(userId, { reason: `Banned by ${interaction.user.tag} via admin panel.` });
+            if (logChannel) {
+              await logChannel.send(`🔨 **Ban:** <@${interaction.user.id}> banned <@${userId}>`);
+            }
+            await interaction.reply({ content: `User <@${userId}> has been banned and logged.`, ephemeral: true });
+          } catch (e) {
+            await interaction.reply({ content: `Failed to ban user: ${e.message}`, ephemeral: true });
+          }
+          return;
+        }
+      }
     });
   }
 };
